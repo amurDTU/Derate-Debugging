@@ -1,0 +1,158 @@
+module yaw_mod
+   use basic_controller_fcns
+   
+   contains
+!**************************************************************************************************
+   subroutine init_controller(array1,array2)
+!      use write_version_mod
+      implicit none
+      !DEC$ IF .NOT. DEFINED(__LINUX__)
+      !DEC$ ATTRIBUTES DLLEXPORT, C, ALIAS:'init_controller'::init_controller
+      !DEC$ END IF
+      real(mk) array1(100), array2(1), arrayK(50), arraypitch(30)
+      integer :: i , i2 , Ind0 , Ind1
+      real*8 :: a , a2
+      character(len=1020) :: filename      
+      !real(mk) ,dimension(yawst%larray) :: arrayaux
+      ! Input array1 must contain
+      !    1: constant 1 ; Strategy 
+      !    2: constant 2 ; Derate percentage
+      !    3: constant 3 ; Power setpoint 
+      ! * get R turbine
+      basicst%strat = array1(1)
+      basicst%Kopt = array1(2)
+      basicst%dr = array1(3)
+      basicst%pset = array1(4)
+      
+      write(0,*) 'Acces basic DTU-Controller Derate.... '
+      
+      
+      ! Pre-process data if needed
+      select case (basicst%strat)
+          
+      case(1)           ! ** reading table DR vs K 
+          write(0,*) 'Reading file -- Dr vs K ' 
+          open(22,file='./control/K_DR.txt') 
+          read(22,*) ! BLANK LINE
+          read(22,*) kdr%nentry
+          do i=1,kdr%nentry
+          read(22,*) kdr%tabkdr(i,1), kdr%tabkdr(i,2)
+          enddo
+     
+          Ind0 = 0                                              ! Init counter
+          do while(basicst%dr.gt.kdr%tabkdr(Ind0,1))
+          Ind0 = Ind0 +1                                        ! Update counter 
+          if (Ind0.eq.kdr%nentry) then
+                basicst%dr = basicst%dr-50000
+          endif
+          enddo
+          
+         Ind0 = min(Ind0,kdr%nentry)
+         Ind0 = Ind0 -1 
+         Ind1 = min(Ind0+1,kdr%nentry) 
+   
+          
+         basicst%kval = interpolate2(basicst%dr,kdr%tabkdr(Ind0,1),kdr%tabkdr(Ind1,1),kdr%tabkdr(Ind0,2),kdr%tabkdr(Ind1,2))
+          
+     
+          
+      case(2)
+          
+          
+      end select
+ end subroutine init_controller
+!**************************************************************************************************
+!**************************************************************************************************
+!**************************************************************************************************
+   subroutine update_controller(array1, array2)
+      implicit none
+      !DEC$ IF .NOT. DEFINED(__LINUX__)
+      !DEC$ ATTRIBUTES DLLEXPORT, C, ALIAS:'update_controller'::update_controller
+      !DEC$ END IF
+      real(mk) array1(100) , array2(100)
+      real(mk) :: time , omega , wsp 
+      real(mk) :: pitch_out, tq_out , drK , K 
+      real(mk) :: wsp_dr, omegadr
+      real(mk) :: eomega
+      integer :: partial_full
+
+      
+      ! *** get update values in dt *** ! 
+      time = array1(1)
+      omega = array1(2)
+      wsp = array1(3)
+      
+      wsp_dr = ((1-basicst%dr)**(0.333333333))*12
+         
+      
+      
+      if(wsp.gt.wsp_dr) then            ! we change from partial to full based on wsp and a wsp derate
+          
+      partial_full = 1                  ! we are in full load     
+      else
+      partial_full = 0                  ! we are in partial load
+      endif
+      
+      ! ***     
+      
+      select case (basicst%strat) 
+          
+      ! De-rate strategy 1                              // K Omega**2  //  
+      case(1) 
+      
+          
+          
+          select case (partial_full)
+              
+          case(0)                               ! partial load region 
+        
+           K = basicst%kval*basicst%Kopt
+           tq_out = K*omega**2
+           pitch_out = -1
+               
+          case(1)                               ! full load region 
+        
+          ! PID for Pitch  ( needs omegadr) 
+          ! Torque ? 
+          ! let's calculate the omegadr 
+          
+          omegadr = (2.3e6*(1-basicst%dr)/basicst%Kopt)**(0.33333)
+          
+          eomega = omega-omegadr
+          
+          
+          
+          
+          ! program PID  
+          tq_out = (2.3e6*(1-basicst%dr))/omegadr
+          
+          end select
+          
+          
+          
+      case(2)
+          
+          
+          write(0,*) 'case 2' 
+
+          
+          
+          
+      end select 
+      
+      
+      
+    !array2(1) =   basicst%Kopt*basicst%arrayK(basicst%ct1)*omega**2
+    !array2(2) =   basicst%arraypitch(basicst%ct2)*(pi/180)
+   
+    array2(1) = tq_out
+    array2(2) = pitch_out*(pi/180)
+    
+   
+    ! **** Output DLL *** !
+        
+   end subroutine update_controller
+!**************************************************************************************************
+! *** Interpolate function ***
+
+end module yaw_mod
