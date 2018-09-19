@@ -4,7 +4,6 @@ module yaw_mod
    contains
 !**************************************************************************************************
    subroutine init_controller(array1,array2)
-!      use write_version_mod
       implicit none
       !DEC$ IF .NOT. DEFINED(__LINUX__)
       !DEC$ ATTRIBUTES DLLEXPORT, C, ALIAS:'init_controller'::init_controller
@@ -12,8 +11,8 @@ module yaw_mod
       real(mk) array1(100), array2(1), arrayK(50), arraypitch(30)
       integer :: i , i2 , Ind0 , Ind1
       real*8 :: a , a2
-      character(len=1020) :: filename      
-      !real(mk) ,dimension(yawst%larray) :: arrayaux
+      
+
       ! Input array1 must contain
       !    1: constant 1 ; Strategy 
       !    2: constant 2 ; Derate percentage
@@ -23,8 +22,14 @@ module yaw_mod
       basicst%Kopt = array1(2)
       basicst%dr = array1(3)
       basicst%pset = array1(4)
+      PID_pitch_var%Kpro = array1(5)
+      PID_pitch_var%Kint = array1(6)
+      PID_pitch_var%Kdif = array1(7)
       
-      write(0,*) 'Acces basic DTU-Controller Derate.... '
+      PID_pitch_var%outmin = -100
+      PID_pitch_var%outmax = 100
+      PID_pitch_var%velmax = 100
+      write(0,*) 'Access basic DTU-Controller Derate....'
       
       
       ! Pre-process data if needed
@@ -75,15 +80,17 @@ module yaw_mod
       real(mk) :: wsp_dr, omegadr
       real(mk) :: eomega
       integer :: partial_full
+      real(mk) :: dummy, Kgain_pitch(3)
+      real(mk) :: deltat = 0.02
 
-      
+      stepno = stepno + 1
       ! *** get update values in dt *** ! 
       time = array1(1)
       omega = array1(2)
       wsp = array1(3)
       
       wsp_dr = ((1-basicst%dr)**(0.333333333))*12
-         
+      
       
       
       if(wsp.gt.wsp_dr) then            ! we change from partial to full based on wsp and a wsp derate
@@ -111,7 +118,7 @@ module yaw_mod
            pitch_out = -1
                
           case(1)                               ! full load region 
-        
+          
           ! PID for Pitch  ( needs omegadr) 
           ! Torque ? 
           ! let's calculate the omegadr 
@@ -119,13 +126,20 @@ module yaw_mod
           omegadr = (2.3e6*(1-basicst%dr)/basicst%Kopt)**(0.33333)
           
           eomega = omega-omegadr
+          Kgain_pitch = 1
+          dummy = PID(stepno, deltat, Kgain_pitch, PID_pitch_var, eomega)
+          write(0, *)  PID_pitch_var%outset, PID_pitch_var%outpro 
+            
           
           
           
           
           ! program PID  
-          tq_out = (2.3e6*(1-basicst%dr))/omegadr
           
+          
+          pitch_out = dummy
+          tq_out = basicst%Kopt*omegadr**2
+          !write(0, *) tq_out
           end select
           
           
@@ -137,22 +151,21 @@ module yaw_mod
 
           
           
-          
+      
       end select 
       
       
       
-    !array2(1) =   basicst%Kopt*basicst%arrayK(basicst%ct1)*omega**2
-    !array2(2) =   basicst%arraypitch(basicst%ct2)*(pi/180)
    
     array2(1) = tq_out
     array2(2) = pitch_out*(pi/180)
+    
     
    
     ! **** Output DLL *** !
         
    end subroutine update_controller
 !**************************************************************************************************
-! *** Interpolate function ***
+
 
 end module yaw_mod

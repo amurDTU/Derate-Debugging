@@ -1,0 +1,409 @@
+; Note: The htc files needs to be executed from the top folder and not the input folder
+begin simulation;    
+  time_stop    300 ;
+  solvertype   1 ;    (newmark)
+  on_no_convergence continue ;
+  logfile ./log/basic_dr.log ;
+  ;animation ./anim/test_yaw.dat;
+  begin newmark;
+    deltat    0.02;  
+  end newmark;
+end simulation;
+;
+begin new_htc_structure;
+;
+  begin main_body;        
+    name        tower ;            
+    type        timoschenko ;
+    nbodies     1 ;
+    node_distribution     c2_def ;
+ damping_posdef   0.0 0.0 0.0 5.55E-03 5.55E-03 5.55E-03  ; Mx My Mz Kx Ky Kz , M´s raises overall level, K´s raises high freguency level "1.5% damping, tuned by nkdi"
+   gravity 9.81;      
+    begin timoschenko_input;
+      filename ./data/t23_tower_st.txt ;
+	;	filename ./data/SWT23_93_Tower_St_Generic.dat; 
+	 set 1 1	  ; 
+    end timoschenko_input;
+    begin c2_def;              Definition of centerline (main_body coordinates)
+      nsec 8;
+       sec 1	0.00	0.00	0.000	0.00	;	x.y.z. twist
+       sec 2	0.00	0.00	-12.308	0.00	;	
+       sec 3	0.00	0.00	-24.615	0.00	;	
+       sec 4	0.00	0.00	-36.923	0.00	;	
+       sec 5	0.00	0.00	-49.231	0.00	;	
+       sec 6	0.00	0.00	-61.538	0.00	;	
+       sec 7	0.00	0.00	-73.846	0.00	;	
+       sec 8	0.00	0.00	-78.572	0.00	;	
+     end c2_def ;
+    end main_body;
+;
+  begin main_body;
+    name        towertop ;              
+    type        timoschenko ;
+    nbodies     1 ;
+    node_distribution     c2_def ;
+   damping 0  0  0  3.00E-05  3.00E-05  2.00E-04  ;    	
+   concentrated_mass 2 0.0  0.808 0.734 82577 3.4E5  5.98E4 3.36E5 ;  Nacelle mass and inertia   
+	begin timoschenko_input;
+      filename ./data/t23_dummy_st.txt ;
+      set 1 1 ;                
+    end timoschenko_input;
+    begin c2_def;              Definition of centerline (main_body coordinates)
+      nsec 2;
+      sec 1 0.0 0.0 0.0       0.0 ; x y z twist
+      sec 2 0.0 0.0 -1.153  0.0 ; 
+    end c2_def ;
+  end main_body;
+;
+  begin main_body;
+    name        shaft ;              
+    type        timoschenko ;
+    nbodies     1 ;
+    node_distribution     c2_def ;
+    damping_posdef  0.0 0.0 0.0  6.5E-04  6.5E-04  1.84E-02 ;
+    concentrated_mass 1 0.0 0.0 0.0 0.0 0.0 0.0 640760.0 ;generator equivalent slow shaft
+    concentrated_mass 4 0.0 0.0 -0.186 25237 2.8E4 2.8E4 4.38E4 ; hub mass and inertia; for hawc2
+    begin timoschenko_input;
+      filename ./data/t23_shaft_st.txt ;
+      set 1 1 ;                
+    end timoschenko_input;
+    begin c2_def;              Definition of centerline (main_body coordinates)
+      nsec 4;
+      sec 1 0.0 0.0 0.0     0.0 ; Tower top x y z twist
+      sec 2 0.0 0.0 1.987     0.0 ; Front bearing
+      sec 3 0.0 0.0 2.287  0.0 ; Hub flange
+      sec 4 0.0 0.0 3.587  0.0 ; Rotor centre    ! Should this be 3.815m instead?
+    end c2_def ;
+  end main_body;	
+;
+  begin main_body;
+    name        hub1 ;              
+    type        timoschenko ;
+    nbodies     1 ;
+    node_distribution     c2_def ;
+  damping_posdef  0.0  0.0  0.0  3.00E-06  3.00E-06  2.00E-05;   "changed by Larh"
+  begin timoschenko_input;
+      filename ./data/t23_dummy_st.txt ;
+      set 1 1 ;                
+    end timoschenko_input;
+    begin c2_def;              Definition of centerline (main_body coordinates)
+      nsec 2;
+      sec 1 0.0 0.0 0.0     0.0 ; x y z twist
+      sec 2 0.0 0.0 1.309   0.0 ; 
+    end c2_def ;
+  end main_body;
+;
+  begin main_body;
+    name           hub2 ;
+    copy_main_body hub1;
+  end main_body;
+;
+  begin main_body;
+    name           hub3 ;
+    copy_main_body hub1 ;
+  end main_body;
+;
+  begin main_body;
+    name        blade1 ;        
+    type        timoschenko ;
+    nbodies     1 ;
+    node_distribution    c2_def;
+    damping_posdef   0.0 0.0 0.0 1.0e-3 1.7e-3 2.0e-3 ;  
+    begin timoschenko_input ;
+      filename ./data/t23_blade_st.txt ;
+      set 1 1 ;                set subset
+    end timoschenko_input;
+    begin c2_def;              Definition of centerline (main_body coordinates)
+      nsec 18 ;
+	sec	1	0.00000		0.00000		0.00000	 0.00000	;
+	sec	2	0.00000		0.00000		1.00000 	0.00000	;
+	sec	3	0.00000		0.00000		1.50000	 0.00000	;
+	sec	4	0.00000		0.03432		2.00000	 -2.00000	;
+	sec	5	-0.50000	0.11733		2.50000	 -7.20000	;
+	sec	6	-0.99598	0.22557		3.00000	 -13.70000	;
+	sec	7	-1.20914	0.22681		5.50000	 -13.30000	;
+	sec	8	-1.57545	0.21563		9.50000	 -12.20000	;
+	sec	9	-1.62715	0.09127		13.50000	-10.00000	;
+	sec	10	-1.46984	-0.09322	17.50000	-7.30000	;
+	sec	11	-1.30615	-0.26496	21.50000	-5.00000	;
+	sec	12	-1.14027	-0.42604	25.50000	-3.20000	;
+	sec	13	-0.97098	-0.57965	29.50000	-1.90000	;
+	sec	14	-0.80088	-0.73337	33.50000	-1.00000	;
+	sec	15	-0.63098	-0.88962	37.50000	-0.50000	;
+	sec	16	-0.46150	-1.05521	41.50000	-0.10000	;
+	sec	17	-0.35500	-1.16000	44.00000	0.00000	;
+	sec	18	-0.00249	-1.19981	45.00000	-4.40000	;
+    end c2_def ;
+  end main_body;
+;
+  begin main_body;
+    name           blade2 ;
+    copy_main_body blade1;
+  end main_body;
+;
+  begin main_body;
+    name           blade3 ;
+    copy_main_body blade1 ;
+  end main_body;
+;----------------------------------------------------------------------------------------------------------------------------------------------------------------                   
+  begin orientation;
+;	  
+    begin base;
+      body   tower;
+      inipos        0.0 0.0 0.0 ;         initial position of node 1
+      body_eulerang 0.0 0.0 0.0;    
+    end base;
+;	  
+    begin relative;
+      body1  tower last;
+      body2  towertop 1;
+      body2_eulerang 0.0 0.0 0.0; 
+    end relative;
+;
+   begin relative;
+      body1  towertop last;
+      body2  shaft 1;
+      body2_eulerang 90.0 0.0 0.0; 
+      body2_eulerang 6.0 0.0 0.0;    5 deg tilt angle
+      body2_eulerang 0.0 0.0 0.0;
+      body2_ini_rotvec_d1 0.0 0.0 -1.0 2 ; body initial rotation velocity x.y.z.angle velocity[rad/s]  (body 2 coordinates)
+    end relative;
+;
+    begin relative;
+      body1  shaft last;         
+      body2  hub1 1;
+      body2_eulerang -90.0 0.0 0.0;    
+      body2_eulerang 2.7 0.0 0.0;      2.7deg cone angle
+    end relative;
+;
+    begin relative;
+      body1  shaft last;         
+      body2  hub2 1;
+      body2_eulerang -90.0 0.0 0.0;    
+      body2_eulerang 0.0 -120.0 0.0;   
+      body2_eulerang 2.7 0.0 0.0;      2.7deg cone angle
+    end relative;
+;
+    begin relative;
+      body1  shaft last;         
+      body2  hub3 1;
+      body2_eulerang -90.0 0.0 0.0;    
+      body2_eulerang 0.0 120.0 0.0;    
+      body2_eulerang 2.7 0.0 0.0;      2.7deg cone angle
+    end relative;
+;
+    begin relative;
+      body1  hub1 last;         
+      body2  blade1 1;
+     body2_eulerang 0.0 0.0 0;    
+    end relative;
+;
+    begin relative;
+      body1  hub2 last;         
+      body2  blade2 1;
+      body2_eulerang 0.0 0.0 0;    
+     ; body2_eulerang 0.0 0.0 0.5;      0.5deg pitch imbalance
+    end relative;
+;
+    begin relative;
+      body1  hub3 last;         
+      body2  blade3 1;
+      body2_eulerang 0.0 0.0 0;    
+     ; body2_eulerang 0.0 0.0 -0.5;      0.5deg pitch imbalance
+    end relative;
+;
+end orientation;
+;----------------------------------------------------------------------------------------------------------------------------------------------------------------
+begin constraint;
+   begin fix0 ;
+     mbdy   tower ;
+   end fix0 ;
+;
+   begin fix1;
+     mbdy1 tower last ;
+     mbdy2 towertop 1;
+   end fix1;
+;
+    begin bearing1;                       free bearing
+      name  shaft_rot;
+      body1 towertop last;
+      body2 shaft 1;
+      bearing_vector 2 0.0 0.0 -1.0;        x=coo (0=global.1=body1.2=body2) vector in body2 coordinates where the free rotation is present
+   end bearing1;
+;
+   begin fix1;
+     body1 shaft last ;
+     body2 hub1 1;
+   end fix1;
+;
+   begin fix1;
+     body1 shaft last ;
+     body2 hub2 1;
+   end fix1;
+;
+   begin fix1;
+     body1 shaft last ;
+     body2 hub3 1;
+   end fix1; 
+;	
+   begin bearing2;
+     name pitch1;		
+     body1 hub1 last;
+     body2 blade1 1;
+     bearing_vector 2 0.0 0.0 -1.0;
+   end bearing2;
+;
+   begin bearing2;
+     name pitch2;		
+     body1 hub2 last;	
+     body2 blade2 1;
+     bearing_vector 2 0.0 0.0 -1.0;
+   end bearing2;
+;
+   begin bearing2;
+     name pitch3;		
+     body1 hub3 last;
+     body2 blade3 1;
+     bearing_vector 2 0.0 0.0 -1.0;
+   end bearing2;
+;
+end constraint;
+end new_htc_structure;
+;
+;-------------------------------------------------------------------------------
+begin wind ;
+  density                 1.225 ;
+  wsp                     15  ;
+  tint                    0.0;
+  horizontal_input        1     ;
+  windfield_rotations     0  0.0  0.0 ;
+  center_pos0             0.0 0.0 -80.0 ;
+  shear_format            1  7  ;
+  turb_format 			  0; 
+  tower_shadow_method     0    ; 
+  ;iec_gust ecd  10  200   50   600  ; 
+  ;wind_ramp_factor   0.0 100 0.5 1.0 ;
+  end wind;
+;
+;-------------------------------------------------------------------------------
+begin aero ;
+  nblades  3;
+  hub_vec shaft -3 ;
+  link 1 mbdy_c2_def blade1;
+  link 2 mbdy_c2_def blade2;
+  link 3 mbdy_c2_def blade3;
+  ae_filename        ./data/t23_ae.txt;
+  pc_filename        ./data/t23_pc.txt;
+  induction_method   1 ;
+  aerocalc_method    1 ;
+  aerosections       30 ;
+  ae_sets            1 1 1;
+  tiploss_method     1 ;
+  dynstall_method    2 ;
+end aero ;
+begin dll;
+; 
+begin type2_dll; 
+     name basic_controller ;
+     filename  ./../Release/basic_derate.dll ;
+     dll_subroutine_init init_controller;
+	 dll_subroutine_update update_controller;
+     arraysizes_init  100 1 ;
+     arraysizes_update 100 100 ;
+     begin init ;
+	   constant 1 1			; Strategy 
+       constant 3 0.8  ; Derate percentage 	   
+	   constant 2 256240    ; K opt 
+	   constant 4 1e5		; Power available
+	   constant 5  0.123355E+01  ; Proportional gain for pitch control
+	   constant 6 0.503576E+00   ; integral gain for pitch control
+	   constant 7 	0			; Derivative gain for pitch control
+	end init ;
+	 begin output;
+        general time                          		;   Time [s]
+		constraint bearing1 shaft_rot 1 only 2		;   Generator LSS speed [rad/s]
+		wind free_wind 1 0.0 0.0 -80.0 only 2     ; Global coordinates at hub height
+	end output;
+end type2_dll;
+;
+begin type2_dll;
+     name generator_servo ;
+     filename  ./control/generator_servo.dll ;
+     dll_subroutine_init init_generator_servo ;
+	dll_subroutine_update update_generator_servo ;
+     arraysizes_init  100 1 ;
+     arraysizes_update 100 100 ;
+ 	begin init ;
+       constant  1 5.0 ; Frequency of genertor 2nd order control model [Hz]   
+       constant  2 0.9 ; Damping ratio of genertor 2nd order control model [-]
+       constant  3 2786330; Maximum allowable LSS torque (pull-out torque) [Nm]
+       constant  4 0.94; 
+	   constant  5 1.0; Gearratio [-]
+       constant  6 0 ; Time for half value in softstart of torque [s]
+       constant  7 10000000000000000000; Time for grid loss
+	 end init ;
+;
+     begin output;
+       general time                          			;   Time [s]
+       dll type2_dll basic_controller inpvec 1          ;   Electrical torque reference [Nm]  
+       constraint bearing1 shaft_rot 1 only 2			;   Generator LSS speed [rad/s]
+       constraint bearing1 shaft_rot 1 only 2;   Generator LSS speed [rad/s]
+       mbdy momentvec shaft 1 1 shaft only 3 ;   Shaft moment [kNm] (Qshaft)
+     end output;
+;
+     begin actions;
+        mbdy moment_int shaft 1 -3 shaft towertop 2 ;   Generator LSS torque [Nm]
+     end actions;
+   end type2_dll;
+; 
+   begin type2_dll;
+    name servo_with_limits ;
+    filename  ./control/servo_with_limits.dll ;
+    dll_subroutine_init init_servo_with_limits ;
+    dll_subroutine_update update_servo_with_limits ;
+    arraysizes_init   100 1 ;
+    arraysizes_update 100 100 ;
+;
+	 begin init ;
+      constant 1   3    ; Number of blades [-]
+      constant 2   1.0  ; Frequency of 2nd order servo model of pitch system [Hz]
+      constant 3   0.7  ; Damping ratio 2nd order servo model of pitch system [-]
+      constant 4  10.0  ; Max. pitch speed [deg/s]
+      constant 5  15.0  ; Max. pitch acceleration [deg/s^2]
+      constant 6  -50.0  ; Min. pitch angle [deg]
+      constant  7 90.0  ; Max. pitch angle [deg]
+      constant  8 1000000000000   ; Time for pitch runaway [s]
+      constant  9 -1    ; Time for stuck blade 1 [s]
+      constant 10 0       ; Angle of stuck blade 1 [deg]
+    end init ;
+    begin output;
+      general time        ;  Time                         [s]
+       dll type2_dll basic_controller inpvec 2     ;  Pitch1 demand angle          [rad]
+       dll type2_dll basic_controller inpvec 2     ;  Pitch2 demand angle          [rad]
+       dll type2_dll basic_controller inpvec 2     ;  Pitch3 demand angle          [rad]
+       general constant 0    ; 	 Flag for emergency pitch stop         [0=off/1=on]
+    end output;
+;
+    begin actions;
+      constraint bearing2 angle pitch1 ; Angle pitch1 bearing    [rad]
+      constraint bearing2 angle pitch2 ; Angle pitch2 bearing    [rad]
+      constraint bearing2 angle pitch3 ; Angle pitch3 bearing    [rad]
+    end actions;
+  end type2_dll;
+  ;
+  ;
+end dll;
+begin output;
+  filename ./res/basic_dr;
+  time 0 20000 ;
+ data_format  hawc_ascii;
+   buffer 1 ;
+  general time ; 
+   aero omega ;
+  dll type2_dll basic_controller inpvec 1 ;
+  dll type2_dll generator_servo inpvec 1 ;
+  dll type2_dll generator_servo inpvec 2 ;
+  constraint bearing2 pitch1 5;    angle and angle velocity 
+ end output;
+;
+exit;

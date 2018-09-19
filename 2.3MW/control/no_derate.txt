@@ -1,0 +1,15 @@
+!                DERATE CONTROL FILE 
+1    			! Control Method              1 Available Power     2 - Available Power Rated   3- Reference Rated 
+1			    ! Strategy Method 			  1   2   3 	
+7.5				! TSR
+0.49			! CP Value
+200000			! Max Rate Kw/S
+0				! Minimum Derate Value
+1.225			! Wind density 
+1				! Filter For Power Reference (low pass)
+1	    		! Tau Kopt
+4				! Number of lines 
+0	0
+199 0
+200 0
+200000 0

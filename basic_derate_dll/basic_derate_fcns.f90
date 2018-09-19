@@ -20,45 +20,20 @@ end type table_KDR
 type(table_KDR) kdr
 
 
+ type Tpidvar
+      real(mk) Kpro,Kdif,Kint,outmin,outmax,velmax,error1,outset1,outres1
+      integer stepno1
+      real(mk) outset,outpro,outdif,error1_old,outset1_old,outres1_old,outres
+end type Tpidvar
+
+
+type(Tpidvar), save        :: PID_pitch_var
+integer :: stepno = 0
 !*****************************************************************************************
     contains
 !*****************************************************************************************
 
-function average_error(stepno,sizemoving,val)
 
-real(mk) :: average_error(1)
-! ******
-real(mk) :: arrayval(1000000)
-real(mk) :: arraymoving(1000000)
-real(mk) :: val, errval , errout
-integer :: stepno, sizemoving
-! *** main program ** 
-! ** 
-if (stepno.lt.2) then
-! start parameters with stepno  / arraymoving and arrayval
-arraymoving(1:sizemoving) = 200        
-arrayval(1:sizemoving) = 0
-arrayval(1) =  val
-else
-! moving average 
-!       
-! **move average
-arrayval(2:sizemoving) = arrayval(1:sizemoving-1)
-arrayval(1) = val
-! ** move value 
-errval = val-arrayval(2)
-arraymoving(2:sizemoving) = arraymoving(1:sizemoving)
-arraymoving(1) = abs(errval)
-
-! ** error out moving average
-errout = sum(arraymoving(1:sizemoving))/sizemoving
-
-endif
-! ** out
-! **
-average_error(1) = errout
-
-end function average_error
 
 function interpolate2(x, x1, x2, y1, y2)
        
@@ -72,5 +47,65 @@ real(mk) interpolate2, x, x1, x2, y1, y2
        return
 end function interpolate2 
 
-    
+function PID(stepno, dt, kgain, PIDvar, error)
+   ! PID controller with one input.
+   integer stepno
+   real(mk) PID, dt, kgain(3), error
+   type(Tpidvar) PIDvar
+   ! Local vars
+   real(mk) eps
+   parameter(eps = 0.000001_mk)
+   ! Initiate
+   if (stepno.eq.1) then
+      PIDvar%outset1 = 0.0_mk
+      PIDvar%outres1 = 0.0_mk
+      PIDvar%error1 = 0.0_mk
+      PIDvar%error1_old = 0.0_mk
+      PIDvar%outset1_old = 0.0_mk
+      PIDvar%outres1_old = 0.0_mk
+   endif
+   ! Save previous values
+   if (stepno.gt.PIDvar%stepno1) then
+      PIDvar%outset1_old = PIDvar%outset1
+      PIDvar%outres1_old = PIDvar%outres1
+      PIDvar%error1_old = PIDvar%error1
+   endif
+   ! Update the integral term
+   PIDvar%outset = PIDvar%outset1_old + 0.5_mk*(error + PIDvar%error1)*Kgain(2)*PIDvar%Kint*dt
+   ! Update proportional term
+   PIDvar%outpro = Kgain(1)*PIDvar%Kpro*0.5_mk*(error + PIDvar%error1)
+   ! Update differential term
+   PIDvar%outdif = Kgain(3)*PIDvar%Kdif*(error - PIDvar%error1_old)/dt
+   ! Sum to up
+   PIDvar%outres = PIDvar%outset+PIDvar%outpro + PIDvar%outdif
+   ! Satisfy hard limits
+   if (PIDvar%outres .lt. PIDvar%outmin) then
+      PIDvar%outres = PIDvar%outmin
+   elseif (PIDvar%outres .gt. PIDvar%outmax) then
+      PIDvar%outres = PIDvar%outmax
+   endif
+   ! Satisfy max velocity
+   if (PIDvar%velmax .gt. eps) then
+      if ((abs(PIDvar%outres-PIDvar%outres1_old)/dt) .gt. PIDvar%velmax) then
+         PIDvar%outres = PIDvar%outres1_old + dsign(PIDvar%velmax*dt, PIDvar%outres-PIDvar%outres1_old)
+      endif
+   endif
+   ! Anti-windup on integral term and save results
+   PIDvar%outset1 = PIDvar%outres - PIDvar%outpro - PIDvar%outdif
+   PIDvar%outres1 = PIDvar%outres
+   PIDvar%error1 = error
+   PIDvar%stepno1 = stepno
+   ! Set output
+   if (stepno .eq. 0) then
+      PID = 0.0_mk
+   else
+      PID = PIDvar%outres
+   endif
+   return
+end function PID
+
+
+
+
+
 end module basic_controller_fcns
