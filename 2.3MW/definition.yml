@@ -1,6 +1,6 @@
-DLC1:
+standard_control:
     constants:
-        casename: DLC1
+        casename: standard_control
         tstop: 150
         strategy: 0
         
@@ -8,12 +8,12 @@ DLC1:
         wsp: [4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24]
         
     functions:
-        case_id: str('DLC1_wsp{wsp}')
+        case_id: str('{casename}_wsp{wsp}')
         
         
-DLC2:
+max_omega:
     constants:
-        casename: DLC2
+        casename: max_omega
         tstop: 150
         strategy: 1
         
@@ -21,12 +21,12 @@ DLC2:
         wsp: [4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24]
         
     functions:
-        case_id: str('DLC2_wsp{wsp}')
+        case_id: str('{casename}_wsp{wsp}')
         
         
-DLC3:
+const_omega:
     constants:
-        casename: DLC3
+        casename: const_omega
         tstop: 150
         strategy: 2
         

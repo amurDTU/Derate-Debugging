@@ -133,11 +133,11 @@ if __name__ == '__main__':
         cases.append(Case(casename, case_def['constants'], case_def['variables'], 
                           case_def['functions']))
         
-        
+
     for case in cases:
         generate_htc_files(case, 'htc/_master/master.htc')
         
-        makeBat(case, 4)
+        makeBat(case, 1)
         
         
     

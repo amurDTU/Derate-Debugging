@@ -1,9 +1,9 @@
 ; Note: The htc files needs to be executed from the top folder and not the input folder
 begin simulation;    
-  time_stop    300 ;
+  time_stop    {tstop} ;
   solvertype   1 ;    (newmark)
   on_no_convergence continue ;
-  logfile ./log/basic_dr.log ;
+  logfile ./log/{casename}/{case_id}.log ;
   ;animation ./anim/test_yaw.dat;
   begin newmark;
     deltat    0.02;  
@@ -250,21 +250,21 @@ begin constraint;
      name pitch1;		
      body1 hub1 last;
      body2 blade1 1;
-     bearing_vector 2 0.0 0.0 -1.0;
+     bearing_vector 2 0.0 0.0 -1;
    end bearing2;
 ;
    begin bearing2;
      name pitch2;		
      body1 hub2 last;	
      body2 blade2 1;
-     bearing_vector 2 0.0 0.0 -1.0;
+     bearing_vector 2 0.0 0.0 -1;
    end bearing2;
 ;
    begin bearing2;
      name pitch3;		
      body1 hub3 last;
      body2 blade3 1;
-     bearing_vector 2 0.0 0.0 -1.0;
+     bearing_vector 2 0.0 0.0 -1;
    end bearing2;
 ;
 end constraint;
@@ -273,12 +273,12 @@ end new_htc_structure;
 ;-------------------------------------------------------------------------------
 begin wind ;
   density                 1.225 ;
-  wsp                     15  ;
+  wsp                     {wsp}  ;
   tint                    0.0;
   horizontal_input        1     ;
   windfield_rotations     0  0.0  0.0 ;
   center_pos0             0.0 0.0 -80.0 ;
-  shear_format            1  7  ;
+  shear_format            1  {wsp}  ;
   turb_format 			  0; 
   tower_shadow_method     0    ; 
   ;iec_gust ecd  10  200   50   600  ; 
@@ -311,13 +311,13 @@ begin type2_dll;
      arraysizes_init  100 1 ;
      arraysizes_update 100 100 ;
      begin init ;
-	   constant 1 1			; Strategy 
-       constant 3 0.8  ; Derate percentage 	   
-	   constant 2 256240    ; K opt 
-	   constant 4 1e5		; Power available
-	   constant 5  0.123355E+01  ; Proportional gain for pitch control
-	   constant 6 0.503576E+00   ; integral gain for pitch control
-	   constant 7 	0			; Derivative gain for pitch control
+	   constant 1 {strategy}    	; Strategy 
+	   constant 2 256240    		; K opt 
+       constant 3 0.2  				; Derate percentage 	   
+	   constant 4 1e5				; Power set point
+	   constant 5  0.123355E+01;  	; Proportional gain for pitch control
+	   constant 6 0.503576E+00   	; integral gain for pitch control
+	   constant 7 	0				; Derivative gain for pitch control
 	end init ;
 	 begin output;
         general time                          		;   Time [s]
@@ -394,16 +394,35 @@ begin type2_dll;
   ;
 end dll;
 begin output;
-  filename ./res/basic_dr;
-  time 0 20000 ;
- data_format  hawc_ascii;
+  filename ./res/{casename}/{case_id};
+  ;time 0 20000 ;
+ data_format  hawc_binary;
    buffer 1 ;
   general time ; 
-   aero omega ;
+  aero omega ;
+  aero torque;
+  aero power;
+  aero thrust;
   dll type2_dll basic_controller inpvec 1 ;
-  dll type2_dll generator_servo inpvec 1 ;
-  dll type2_dll generator_servo inpvec 2 ;
-  constraint bearing2 pitch1 5;    angle and angle velocity 
+  dll type2_dll generator_servo inpvec 1 # Mgen LSS [Nm] ;
+  dll type2_dll generator_servo inpvec 2 # Pelec [W];
+  constraint bearing1 shaft_rot 2; angle and angle velocity
+  constraint bearing2 pitch1 5;    angle and angle velocity
+  constraint bearing2 pitch2 5;    angle and angle velocity
+  constraint bearing2 pitch3 5;    angle and angle velocity
+
+  wind free_wind 1 0.0 0.0 -80; local wind at fixed position: coo (1=global.2=non-rotation rotor coo.). pos x. pos y. pos z
+  mbdy momentvec tower  1 1  tower # tower base ;
+  mbdy momentvec tower  7 2 tower # tower yaw bearing ;
+  mbdy momentvec tower  1 1  global # tower base ;
+  mbdy momentvec tower  7 2 global # tower yaw bearing ;
+  mbdy momentvec shaft  3 1  shaft # main bearing ;
+  mbdy momentvec shaft  3 2  shaft # main bearing ;
+  mbdy momentvec blade1 1  1 blade1 # blade 1 root ;
+  mbdy momentvec blade2 1  1 blade2 # blade 2 root ;
+  mbdy momentvec blade3 1  1 blade3 # blade 3 root ;
+  dll type2_dll basic_controller inpvec 2 # pitch control demand [rad];
+  dll type2_dll basic_controller inpvec 3 # pitch control error;
  end output;
 ;
 exit;
