@@ -2,9 +2,8 @@ module basic_controller_fcns
 use misc_mod
 ! Types
 type basicdr
-
-integer :: strat , fullload
-real*8 :: dr, pset, kval , Kopt
+    integer :: strat , fullload
+    real*8 :: dr, pset, kval , Kopt, omega_rated
 end type basicdr
 
 type(basicdr) basicst
@@ -12,10 +11,8 @@ type(basicdr) basicst
 
 ! ** 
 type table_KDR
-    
-integer :: nentry
-real(mk) tabkdr(1000,2)  
-
+    integer :: nentry
+    real(mk) tabkdr(1000,2)  
 end type table_KDR 
 type(table_KDR) kdr
 

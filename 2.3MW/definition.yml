@@ -1,0 +1,39 @@
+DLC1:
+    constants:
+        casename: DLC1
+        tstop: 150
+        strategy: 0
+        
+    variables:
+        wsp: [4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24]
+        
+    functions:
+        case_id: str('DLC1_wsp{wsp}')
+        
+        
+DLC2:
+    constants:
+        casename: DLC2
+        tstop: 150
+        strategy: 1
+        
+    variables:
+        wsp: [4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24]
+        
+    functions:
+        case_id: str('DLC2_wsp{wsp}')
+        
+        
+DLC3:
+    constants:
+        casename: DLC3
+        tstop: 150
+        strategy: 2
+        
+    variables:
+        wsp: [4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24]
+        
+    functions:
+        case_id: str('{casename}_wsp{wsp}')
+        
+        
