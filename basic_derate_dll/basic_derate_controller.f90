@@ -44,14 +44,22 @@ module yaw_mod
         PID_pitch_var%outmin = -1
         PID_pitch_var%outmax = 100
         PID_pitch_var%velmax = 100
+        basicst%wsp_r = 10.657 ! rated wind speed calculated using(2300000/(0.94*0.49*0.5*1.225*np.pi*92.6^2/4))^(1.0/3)
+        basicst%wsp_dr = basicst%wsp_r*(1 - basicst%dr)**(1.0/3)
+        basicst%TSR = 8.85 ! confirmed in simulation for K = 256240
+        basicst%R = 46.3
+        
         write(0,*) 'Access basic DTU-Controller Derate....'
-      
+        write(0,*) 'Derated wind speed', basicst%wsp_dr
+        write(0,*) 'Rated wind speed', basicst%wsp_r
       
         ! Pre-process data if needed
         select case (basicst%strat)
         case(0) ! No derating
         case(1) ! max omega strategy
         case(2) ! constant omega strategy
+        case(3) ! constant tip speed ratio strategy
+            
         case(9)           ! ** reading table DR vs K 
             write(0, *) 'Reading file -- Dr vs K ' 
             open(22, file='./control/K_DR.txt') 
@@ -107,10 +115,10 @@ module yaw_mod
         omega = array1(2)
         wsp = array1(3)
       
-      
+        
         !A naughty way of checking full or partial load region
-        wsp_dr = 11*(1 - basicst%dr)**(1.0/3)
-        if(wsp.gt.wsp_dr) then            ! we change from partial to full based on wsp and a wsp derate
+        
+        if(wsp .gt. basicst%wsp_dr) then            ! we change from partial to full based on wsp and a wsp derate
             partial_load = .FALSE.                  ! we are in full load     
         else
             partial_load = .TRUE.                  ! we are in partial load
@@ -148,9 +156,7 @@ module yaw_mod
                 tq_out = basicst%Kopt*omega**2
                 pitch_out = -1
             else
-
                 omega_target = basicst%omega_rated
-                
                 eomega = omega - omega_target
                 Kgain_pitch = 1
                 stepno = stepno + 1
@@ -159,7 +165,6 @@ module yaw_mod
                 ! program PID    
                 pitch_out = dummy
                 tq_out = 2.3e6*(1 - basicst%dr)/omega_target
-         
             endif
             
             
@@ -167,6 +172,37 @@ module yaw_mod
             if (partial_load) then
                 tq_out = basicst%Kopt*omega**2
                 pitch_out = -1
+            else
+                omega_target = (2.3e6*(1 - basicst%dr)/basicst%Kopt)**(1.0/3)
+                eomega = omega - omega_target
+                Kgain_pitch = 1
+                stepno = stepno + 1
+                dummy = PID(stepno, deltat, Kgain_pitch, PID_pitch_var, eomega)
+              
+                ! program PID    
+                pitch_out = dummy
+                tq_out = basicst%Kopt*omega_target**2
+
+            endif
+
+            
+            
+        case(3) ! constant tip speed ratio strategy
+            ! check if the wind speed is between derated and rated wind speed
+            if ((wsp .GT. basicst%wsp_dr) .AND. (wsp .LT. basicst%wsp_r)) then
+                omega_target = basicst%TSR * wsp/basicst%R
+                eomega = omega - omega_target
+                Kgain_pitch = 1
+                stepno = stepno + 1
+                dummy = PID(stepno, deltat, Kgain_pitch, PID_pitch_var, eomega)         
+                ! program PID    
+                pitch_out = dummy
+                tq_out = basicst%Kopt*omega_target**2
+                    
+            elseif (partial_load) then
+                tq_out = basicst%Kopt*omega**2
+                pitch_out = -1
+              
             else
 
                 omega_target = (2.3e6*(1 - basicst%dr)/basicst%Kopt)**(1.0/3)
@@ -181,8 +217,10 @@ module yaw_mod
                 tq_out = basicst%Kopt*omega_target**2
 
             endif
-        ! De-rate strategy 9                              // K Omega**2  //  
-        case(9) 
+            
+            
+            
+        case(9)   ! De-rate strategy 9                              // K Omega**2  //  
             if (partial_load) then ! 
                 K = basicst%kval*basicst%Kopt
                 tq_out = K*omega**2

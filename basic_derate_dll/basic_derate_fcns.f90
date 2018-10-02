@@ -4,6 +4,7 @@ use misc_mod
 type basicdr
     integer :: strat , fullload
     real*8 :: dr, pset, kval , Kopt, omega_rated
+    real*8 :: wsp_r, wsp_dr, TSR, R
 end type basicdr
 
 type(basicdr) basicst

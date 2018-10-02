@@ -131,8 +131,9 @@ if __name__ == '__main__':
     
     
     # plot
-    styles = ['-', '--', '.']
+    styles = ['-', '--', '.', 'x']
     plt.figure()
+    plt.grid()
     plt.xlim(0, 25)
     plt.xlabel('Wind speed [m/s]')
     plt.ylabel('Omega [rad/s]')

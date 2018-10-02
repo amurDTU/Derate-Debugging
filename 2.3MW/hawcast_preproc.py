@@ -102,7 +102,51 @@ def chunkify(lst, n):
     return [lst[i::n] for i in range(n)]
 
 
+def join_cases(cases):
+    # joins the dataframe describing each case into a single large dataframe
+    for i, case in enumerate(cases):
+        if i == 0:
+            out = case._man
+        else:
+            out = out.append(case._man, ignore_index=True)
+    return out
+
+
+def missingRes(sims):
+    # returns htc file names of sims without results.
+    toRun = []
+    for _, sim in sims.iterrows():
+        if os.path.isfile('res/' + sim.casename + '/' + sim.case_id + '.sel'):
+            continue
+        else:
+            toRun.append('htc\\' + sim.casename + '\\' + sim.case_id + '.htc')
+            
+    return toRun
+            
+
+
+def allSims(sims):
+    # returns htc file names of sims without results.
+    toRun = []
+    for _, sim in sims.iterrows():
+        toRun.append('htc\\' + sim.casename + '\\' + sim.case_id + '.htc')            
+    return toRun          
+
+
+  
+def makeBat2(toRun, N=1):
+    bat_dir = 'bat\\'
+    chunks = chunkify(toRun, N)
     
+    for i, chunk in enumerate(chunks):
+        with open(bat_dir + '{}.bat'.format(i), 'w') as f:
+            f.write('cd ..\n')
+            for file in chunk:
+                f.write(f'hawc2mb {file}\n')   
+                
+                
+                
+                
 def makeBat(case, N=1):
     htc_dir = 'htc\\' + case.basename 
     bat_dir = 'bat\\'
@@ -137,8 +181,8 @@ if __name__ == '__main__':
     for case in cases:
         generate_htc_files(case, 'htc/_master/master.htc')
         
-        makeBat(case, 1)
-        
-        
+    toRun = missingRes(join_cases(cases))
+    #toRun = allSims(join_cases(cases))
+    makeBat2(toRun, N=4)
     
-    
+    # prep_launch(missingresults==True, case='blah')
