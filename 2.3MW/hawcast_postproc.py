@@ -112,11 +112,12 @@ if __name__ == '__main__':
                 'Gtorque':7,
                 'omega':2}
     
-    pelec, omega, wsp = {}, {}, {}
+    pelec, omega, torque, wsp = {}, {}, {}, {}
     for case in cases:
         wsp[case.basename] = []
         pelec[case.basename] = []
         omega[case.basename] = []
+        torque[case.basename] = []
         
         res_dir = f'res/{case.basename}/'.lower()  
         
@@ -126,6 +127,7 @@ if __name__ == '__main__':
             wsp[case.basename].append(sim.wsp)
             pelec[case.basename].append(data.Pelec.values[-1]/1e6)
             omega[case.basename].append(data.omega.values[-1])
+            torque[case.basename].append(-data.Gtorque.values[-1])
             
 
     
@@ -154,7 +156,27 @@ if __name__ == '__main__':
         plt.plot(wsp[case.basename], pelec[case.basename], styles[i], label=case.basename)
     plt.legend()
         
-        
+    plt.figure()
+    plt.grid()
+    #plt.xlim(4, 25)
+    #plt.xlim(7, 12)
+    plt.xlabel('Rotor speed [rad/s]')
+    plt.ylabel('Torque [?]')
+    for i, case in enumerate(cases):
+        plt.plot(omega[case.basename], torque[case.basename], styles[i], label=case.basename)
+    plt.legend(loc='lower left')
+    
+    
+    plt.figure()
+    plt.grid()
+    #plt.xlim(4, 25)
+    #plt.xlim(7, 12)
+    plt.xlabel('wind speed [m/s]')
+    plt.ylabel('Torque [?]')
+    for i, case in enumerate(cases):
+        plt.plot(wsp[case.basename], torque[case.basename], styles[i], label=case.basename)
+    plt.legend(loc='lower right')
+                
         
         
         
