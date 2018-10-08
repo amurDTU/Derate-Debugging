@@ -313,7 +313,7 @@ begin type2_dll;
      begin init ;
 	   constant 1 {strategy}    	; Strategy 
 	   constant 2 256240    		; K opt 
-       constant 3 0.2  				; Derate percentage 	   
+       constant 3 0.4  				; Derate percentage 	   
 	   constant 4 1e5				; Power set point
 	   constant 5  0.123355E+01;  	; Proportional gain for pitch control
 	   constant 6 0.503576E+00   	; integral gain for pitch control

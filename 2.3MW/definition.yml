@@ -3,49 +3,61 @@ standard_control:
         casename: standard_control
         tstop: 150
         strategy: 0
-        
+
     variables:
-        wsp: [4, 6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24]
-        
+      wsp: [4, 6, 7, 8, 8.5, 9, 9.5, 10, 10.5, 11, 12, 14, 16, 18, 20, 22, 24]
+
     functions:
         case_id: str('{casename}_wsp{wsp}')
-        
-        
+
+
 max_omega:
     constants:
         casename: max_omega
         tstop: 150
         strategy: 1
-        
+
     variables:
-        wsp: [4, 6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24]
-        
+        wsp: [4, 6, 7, 8, 8.5, 9, 9.5, 10, 10.5, 11, 12, 14, 16, 18, 20, 22, 24]
+
     functions:
         case_id: str('{casename}_wsp{wsp}')
-        
-        
+
+
 const_omega:
     constants:
         casename: const_omega
         tstop: 150
         strategy: 2
-        
+
     variables:
-        wsp: [4, 6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24]
-        
+        wsp: [4, 6, 7, 8, 8.5, 9, 9.5, 10, 10.5, 11, 12, 14, 16, 18, 20, 22, 24]
+
     functions:
         case_id: str('{casename}_wsp{wsp}')
-        
-        
+
+
 const_TSR:
     constants:
         casename: const_TSR
         tstop: 150
         strategy: 3
-        
+
     variables:
-        wsp: [4, 6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24]
-        
+        wsp: [4, 6, 7, 8, 8.5, 9, 9.5, 10, 10.5, 11, 12, 14, 16, 18, 20, 22, 24]
+
     functions:
         case_id: str('{casename}_wsp{wsp}')
-        
+
+
+percent_derate:
+    constants:
+        casename: percent_derate
+        tstop: 150
+        strategy: 9
+
+    variables:
+        wsp: [4, 6, 7, 8, 8.5, 9, 9.5, 10, 10.5, 11, 12, 14, 16, 18, 20, 22, 24]
+
+    functions:
+        case_id: str('{casename}_wsp{wsp}')

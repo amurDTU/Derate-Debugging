@@ -13,7 +13,8 @@ type(basicdr) basicst
 ! ** 
 type table_KDR
     integer :: nentry
-    real(mk) tabkdr(1000,2)  
+    real(mk), allocatable :: tabk(:)
+    real(mk), allocatable :: tabdr(:)
 end type table_KDR 
 type(table_KDR) kdr
 
@@ -30,20 +31,34 @@ integer :: stepno = 0
 !*****************************************************************************************
     contains
 !*****************************************************************************************
+     function interp(x, xp, yp)
+    ! Linearly interpolates the value x from the lists of values, xp and yp		
+		real(mk), intent(in) :: x
+		real(mk), intent(in), dimension(:) :: xp, yp
+		real(mk) :: w_, interp
+		integer :: N, i
+
+        N = size(xp)
+		! find the index for the lower interpolation boundary
+        
+		if (x >= xp(N)) then !if x is equal to or greater than upper value of xp, do extrapolation
+			i = N-1
+		else 		
+			i = 1
+			do while (x >= xp(i+1))
+				i = i + 1
+			end do
+		end if
+		
+		w_ = (x - xp(i)) / (xp(i+1) - xp(i))
+        interp = yp(i) + w_*(yp(i+1) - yp(i))
+        
+        return
+     end function interp
 
 
 
-function interpolate2(x, x1, x2, y1, y2)
-       
-real(mk) interpolate2, x, x1, x2, y1, y2
-    if (x1 .eq. x2) then
-          interpolate2 = y1
-    else
-          interpolate2 = ((y2-y1)/(x2-x1))*(x-x1)+y1
-    endif
-       
-       return
-end function interpolate2 
+
 
 function PID(stepno, dt, kgain, PIDvar, error)
    ! PID controller with one input.
@@ -101,9 +116,6 @@ function PID(stepno, dt, kgain, PIDvar, error)
    endif
    return
 end function PID
-
-
-
 
 
 end module basic_controller_fcns

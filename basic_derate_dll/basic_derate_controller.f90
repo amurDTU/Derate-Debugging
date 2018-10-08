@@ -65,26 +65,15 @@ module yaw_mod
             open(22, file='./control/K_DR.txt') 
             read(22, *) ! BLANK LINE
             read(22, *) kdr%nentry
+            allocate(kdr%tabk(kdr%nentry))
+            allocate(kdr%tabdr(kdr%nentry))
             do i=1, kdr%nentry
-                read(22, *) kdr%tabkdr(i, 1), kdr%tabkdr(i, 2)
+                read(22, *) kdr%tabdr(i), kdr%tabk(i)
             enddo
      
-          
-            ! interpolate the required value of K to achieve the desired derate percentage
-            ! To do - encapsulate this into a single interpolation function.
-            Ind0 = 0                                              ! Initialize counter
-            do while(basicst%dr.gt.kdr%tabkdr(Ind0,1))
-                Ind0 = Ind0 +1                                        ! Update counter 
-                if (Ind0.eq.kdr%nentry) then
-                    basicst%dr = basicst%dr-50000
-                endif
-            enddo
-          
-            Ind0 = min(Ind0, kdr%nentry)
-            Ind0 = Ind0 - 1 
-            Ind1 = min(Ind0 + 1, kdr%nentry) 
-   
-            basicst%kval = interpolate2(basicst%dr,kdr%tabkdr(Ind0,1),kdr%tabkdr(Ind1,1),kdr%tabkdr(Ind0,2),kdr%tabkdr(Ind1,2))
+            basicst%kval = interp(basicst%dr, kdr%tabdr, kdr%tabk)
+
+            write(0, *) 'K value', basicst%kval
           
      
           
@@ -197,7 +186,7 @@ module yaw_mod
                 dummy = PID(stepno, deltat, Kgain_pitch, PID_pitch_var, eomega)         
                 ! program PID    
                 pitch_out = dummy
-                tq_out = basicst%Kopt*omega_target**2
+                tq_out = 2.3e6*(1 - basicst%dr)/omega_target
                     
             elseif (partial_load) then
                 tq_out = basicst%Kopt*omega**2
@@ -205,7 +194,7 @@ module yaw_mod
               
             else
 
-                omega_target = (2.3e6*(1 - basicst%dr)/basicst%Kopt)**(1.0/3)
+                omega_target = basicst%omega_rated
                 
                 eomega = omega - omega_target
                 Kgain_pitch = 1
@@ -214,33 +203,31 @@ module yaw_mod
               
                 ! program PID    
                 pitch_out = dummy
-                tq_out = basicst%Kopt*omega_target**2
+                tq_out = 2.3e6*(1 - basicst%dr)/omega_target
 
             endif
             
             
             
         case(9)   ! De-rate strategy 9                              // K Omega**2  //  
-            if (partial_load) then ! 
-                K = basicst%kval*basicst%Kopt
+            K = basicst%kval*basicst%Kopt
+            
+            if (wsp .LT. basicst%wsp_r) then ! 
                 tq_out = K*omega**2
                 pitch_out = -1
                 
              else
-                ! PID for Pitch  ( needs omegadr) 
-                ! Torque ? 
-                ! let's calculate the omegadr 
+         
+                omega_target = (2.3e6*(1 - basicst%dr)/K)**(1.0/3)
           
-                omegadr = (2.3e6*(1-basicst%dr)/basicst%Kopt)**(0.33333)
-          
-                eomega = omega-omegadr
+                eomega = omega - omega_target
                 Kgain_pitch = 1
                 stepno = stepno + 1
                 dummy = PID(stepno, deltat, Kgain_pitch, PID_pitch_var, eomega)
 
                 ! program PID    
                 pitch_out = dummy
-                tq_out = basicst%Kopt*omegadr**2
+                tq_out = 2.3e6*(1 - basicst%dr)/omega_target
                 
             endif
       

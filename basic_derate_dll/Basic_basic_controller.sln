@@ -1,7 +1,11 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2016
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{6989167D-11E4-40FE-8C1A-2192A86A7E90}") = "basic_derate", "basic_derate.vfproj", "{C3DAC6E4-340E-4105-9CC3-D1560C1EDDD8}"
+EndProject
+Project("{6989167D-11E4-40FE-8C1A-2192A86A7E90}") = "Console1", "..\Console1\Console1.vfproj", "{0358BD45-60CF-4E5B-A9AF-E88C7856725B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,8 +17,15 @@ Global
 		{C3DAC6E4-340E-4105-9CC3-D1560C1EDDD8}.Debug|Win32.Build.0 = Debug|Win32
 		{C3DAC6E4-340E-4105-9CC3-D1560C1EDDD8}.Release|Win32.ActiveCfg = Release|Win32
 		{C3DAC6E4-340E-4105-9CC3-D1560C1EDDD8}.Release|Win32.Build.0 = Release|Win32
+		{0358BD45-60CF-4E5B-A9AF-E88C7856725B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{0358BD45-60CF-4E5B-A9AF-E88C7856725B}.Debug|Win32.Build.0 = Debug|Win32
+		{0358BD45-60CF-4E5B-A9AF-E88C7856725B}.Release|Win32.ActiveCfg = Release|Win32
+		{0358BD45-60CF-4E5B-A9AF-E88C7856725B}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {01AE4D2D-F9A1-48A8-9694-AAF9DFE76B06}
 	EndGlobalSection
 EndGlobal

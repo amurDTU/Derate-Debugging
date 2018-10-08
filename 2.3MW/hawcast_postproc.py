@@ -131,10 +131,11 @@ if __name__ == '__main__':
     
     
     # plot
-    styles = ['-', '--', '.', 'x']
+    styles = ['-', '--', '.', 'x', ':', 'o']
     plt.figure()
     plt.grid()
-    plt.xlim(0, 25)
+    plt.xlim(4, 25)
+    #plt.xlim(7, 12)
     plt.xlabel('Wind speed [m/s]')
     plt.ylabel('Omega [rad/s]')
     for i, case in enumerate(cases):
@@ -144,7 +145,9 @@ if __name__ == '__main__':
     
     
     plt.figure()
-    plt.xlim(0, 25)
+    plt.grid()
+    plt.xlim(4, 25)
+    #plt.xlim(7, 12)
     plt.xlabel('Wind speed [m/s]')
     plt.ylabel('Power [MW]')
     for i, case in enumerate(cases):
